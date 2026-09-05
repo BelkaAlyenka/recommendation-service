@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260905-01
+      author: student
+      changes:
+        - createTable:
+            tableName: recommendation_rules
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: product_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: product_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: product_text
+                  type: TEXT
+                  constraints:
+                    nullable: false
