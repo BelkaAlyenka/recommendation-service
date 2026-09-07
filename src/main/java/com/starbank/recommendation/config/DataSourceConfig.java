@@ -1,5 +1,6 @@
 package com.starbank.recommendation.config;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.jdbc.autoconfigure.DataSourceProperties;
@@ -26,8 +27,7 @@ public class DataSourceConfig {
     }
 
     @Bean
-    public SpringLiquibase rulesLiquibase(DataSource rulesDataSource) {
-
+    public SpringLiquibase rulesLiquibase(@Qualifier("rulesDataSource") DataSource rulesDataSource) {
         SpringLiquibase liquibase = new SpringLiquibase();
         liquibase.setDataSource(rulesDataSource);
         liquibase.setChangeLog("classpath:db/changelog/db.changelog-master.yaml");
