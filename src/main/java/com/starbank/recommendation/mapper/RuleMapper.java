@@ -26,7 +26,7 @@ public class RuleMapper {
         }
         return ruleEntity;
     }
-    
+
     public RuleDto toDto(RuleEntity entity) {
         var queryDtos = entity.getQueries().stream()
                 .map(this::toQueryDto)
