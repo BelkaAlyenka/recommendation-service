@@ -5,7 +5,9 @@ import com.starbank.recommendation.domain.RuleEntity;
 import com.starbank.recommendation.dto.RecommendationDto;
 import com.starbank.recommendation.dto.RecommendationResponseDto;
 import com.starbank.recommendation.repository.RuleRepository;
+import com.starbank.recommendation.repository.RuleStatsRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,12 +18,18 @@ public class RecommendationService {
 
     private final RuleRepository ruleRepository;
     private final CachingUserStatsService cachingUserStatsService;
+    private final RuleStatsRepository ruleStatsRepository;
 
-    public RecommendationService(RuleRepository ruleRepository, CachingUserStatsService cachingUserStatsService) {
+    public RecommendationService(
+            RuleRepository ruleRepository,
+            CachingUserStatsService cachingUserStatsService,
+            RuleStatsRepository ruleStatsRepository) {
         this.ruleRepository = ruleRepository;
         this.cachingUserStatsService = cachingUserStatsService;
+        this.ruleStatsRepository = ruleStatsRepository;
     }
 
+    @Transactional
     public RecommendationResponseDto getRecommendations(UUID userId) {
         List<RuleEntity> rules = ruleRepository.findAll();
         List<RecommendationDto> validRecommendations = new ArrayList<>();
@@ -39,6 +47,8 @@ public class RecommendationService {
             }
 
             if (isRuleApplicable) {
+                ruleStatsRepository.incrementCount(rule.getId());
+
                 validRecommendations.add(new RecommendationDto(
                         rule.getProductId(),
                         rule.getProductName(),
@@ -111,7 +121,7 @@ public class RecommendationService {
 
     private boolean checkDepositWithdrawCompare(UUID userId, String productType, String operator) {
         long delta = cachingUserStatsService.getDepositWithdrawDelta(userId, productType);
-        return compareValues(delta, operator, 0); // Сравниваем разницу DEPOSIT - WITHDRAW с нулем
+        return compareValues(delta, operator, 0);
     }
 
     private boolean compareValues(long actual, String operator, long expected) {
