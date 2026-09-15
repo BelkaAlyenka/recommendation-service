@@ -49,4 +49,10 @@ public class CachingUserStatsService {
             return deposits - withdraws;
         });
     }
+
+    public void clearAllCaches() {
+        userTransactionCountCache.invalidateAll();
+        transactionSumCache.invalidateAll();
+        depositWithdrawDeltaCache.invalidateAll();
+    }
 }

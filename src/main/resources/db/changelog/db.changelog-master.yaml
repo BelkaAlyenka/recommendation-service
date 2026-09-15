@@ -85,3 +85,27 @@ databaseChangeLog:
             tableName: query_arguments
             columnNames: query_id, argument_order
             constraintName: pk_query_arguments
+
+  - changeSet:
+      id: 20260911-02
+      author: BelkaAlyenka
+      changes:
+        - createTable:
+            tableName: rule_stats
+            columns:
+              - column:
+                  name: rule_id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    foreignKeyName: fk_rule_stats_rule
+                    referencedTableName: recommendation_rules
+                    referencedColumnNames: id
+                    deleteCascade: true
+              - column:
+                  name: count
+                  type: BIGINT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
