@@ -1,11 +1,11 @@
 package com.starbank.recommendation;
 
-import com.starbank.recommendation.repository.readonly.UserReadOnlyEntity;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
+
 import java.util.UUID;
 
 @Component

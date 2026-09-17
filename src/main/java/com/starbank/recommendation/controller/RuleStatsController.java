@@ -12,6 +12,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * REST-контроллер для сбора бизнес-метрик и мониторинга вовлеченности пользователей.
+ * Позволяет анализировать частоту фиксаций (срабатываний) маркетинговых правил.
+ */
 @RestController
 public class RuleStatsController {
 
@@ -23,6 +27,12 @@ public class RuleStatsController {
         this.ruleStatsRepository = ruleStatsRepository;
     }
 
+    /**
+     * Агрегирует и возвращает статистику показов по всем существующим правилам рекомендаций.
+     * Сводит данные из репозитория правил и репозитория счетчиков кликов.
+     *
+     * @return RuleStatsResponseDto со списком пар "идентификатор правила — количество срабатываний"
+     */
     @GetMapping("/rule/stats")
     public RuleStatsResponseDto getRuleStats() {
         var allRules = ruleRepository.findAll();

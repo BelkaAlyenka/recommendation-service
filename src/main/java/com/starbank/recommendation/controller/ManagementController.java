@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+/**
+ * REST-контроллер для выполнения задач управления.
+ * Используется внутренними автоматизированными системами мониторинга и автоматизации (Cron/АБС).
+ */
 @RestController
 @RequestMapping("/management")
 public class ManagementController {
@@ -22,12 +26,24 @@ public class ManagementController {
         this.buildProperties = buildProperties;
     }
 
+    /**
+     * Инициирует принудительную очистку всех кэшей агрегированных транзакционных данных клиентов.
+     * Вызывается при обновлении банковских витрин данных.
+     *
+     * @return ResponseEntity со статусом 200 OK при успешном сбросе памяти
+     */
     @PostMapping("/clear-caches")
     public ResponseEntity<Void> clearCaches() {
         cachingUserStatsService.clearAllCaches();
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Предоставляет данные о текущей работающей сборке приложения.
+     * Используется контуром мониторинга для контроля версий в среде эксплуатации.
+     *
+     * @return Map, содержащая наименование артефакта и его текущую версию
+     */
     @GetMapping("/info")
     public Map<String, String> getInfo() {
         return Map.of(

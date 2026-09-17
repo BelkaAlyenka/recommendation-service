@@ -19,6 +19,11 @@ import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 
 import java.util.List;
 
+/**
+ * Компонент официального Telegram-бота StarBank (@StarBankRules2026Bot).
+ * Обеспечивает интерфейс для запроса персональных предложений
+ * конечными пользователями мессенджера в режиме Long Polling.
+ */
 @Component
 public class RecommendationBot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
 
@@ -40,23 +45,37 @@ public class RecommendationBot implements SpringLongPollingBot, LongPollingSingl
         this.recommendationService = recommendationService;
     }
 
+    /**
+     * Возвращает секретный токен аутентификации Telegram API.
+     */
     @Override
     public String getBotToken() {
         return botToken;
     }
 
+    /**
+     * Конфигурирует потребителя обновлений (Updates Consumer) для текущей сессии бота.
+     */
     @Override
     public LongPollingUpdateConsumer getUpdatesConsumer() {
         return this;
     }
 
+    /**
+     * Основной обработчик входящих событий (апдейтов) от Telegram API.
+     * Осуществляет маршрутизацию текстовых команд пользователей.
+     *
+     * @param update объект, содержащий метаданные о новом событии в чате
+     */
     @Override
     public void consume(Update update) {
+        // Проверяем, что событие содержит текстовое сообщение
         if (update.hasMessage() && update.getMessage().hasText()) {
             Message message = update.getMessage();
             String messageText = message.getText().trim();
             long chatId = message.getChatId();
 
+            // Обработка приветственных и справочных команд
             if (messageText.equals("/start") || messageText.equalsIgnoreCase("/help")) {
                 sendTextMessage(chatId, """
                         Приветствуем в сервисе рекомендаций StarBank!
@@ -67,6 +86,7 @@ public class RecommendationBot implements SpringLongPollingBot, LongPollingSingl
                 return;
             }
 
+            // Обработка основной команды генерации персональных офферов
             if (messageText.startsWith("/recommend")) {
                 String[] parts = messageText.split("\\s+");
                 if (parts.length < 2) {
@@ -79,13 +99,22 @@ public class RecommendationBot implements SpringLongPollingBot, LongPollingSingl
                 return;
             }
 
+            // Корректный ответ на любые неизвестные текстовые команды
             sendTextMessage(chatId, "Неизвестная команда. Используйте /recommend <username> для получения рекомендаций.");
         }
     }
 
+    /**
+     * Внутренний метод бизнес-логики для обработки команды /recommend.
+     * Осуществляет поиск пользователя по username и запрашивает рекомендации через базовый сервис.
+     *
+     * @param chatId   уникальный идентификатор чата для отправки ответа
+     * @param username имя пользователя в банковской системе
+     */
     private void processRecommendationCommand(long chatId, String username) {
         List<UserReadOnlyEntity> users = userRepository.findByUsername(username);
 
+        // Проверяем, что пользователь существует и его имя уникально
         if (users == null || users.isEmpty() || users.size() > 1) {
             sendTextMessage(chatId, "Пользователь не найден");
             return;
@@ -93,9 +122,11 @@ public class RecommendationBot implements SpringLongPollingBot, LongPollingSingl
 
         UserReadOnlyEntity user = users.get(0);
 
+        // Запрашиваем персональный список рекомендаций из гибридного движка правил
         RecommendationResponseDto recommendations = recommendationService.getRecommendations(user.getId());
         List<RecommendationDto> productList = recommendations.recommendations();
 
+        // Формируем ответ для клиента
         StringBuilder responseBuilder = new StringBuilder();
         responseBuilder.append("Здравствуйте ").append(user.getFirstName()).append(" ").append(user.getLastName()).append("\n");
         responseBuilder.append("Новые продукты для вас:\n");
@@ -111,6 +142,13 @@ public class RecommendationBot implements SpringLongPollingBot, LongPollingSingl
         sendTextMessage(chatId, responseBuilder.toString().trim());
     }
 
+    /**
+     * Вспомогательный метод для безопасной отправки текстовых сообщений обратно в чат.
+     * Изолирует сетевые исключения интеграции Telegram Bot API от основного потока приложения.
+     *
+     * @param chatId идентификатор целевого диалога
+     * @param text   текстовое содержимое сообщения
+     */
     private void sendTextMessage(long chatId, String text) {
         SendMessage sendMessage = SendMessage.builder()
                 .chatId(String.valueOf(chatId))
@@ -119,6 +157,7 @@ public class RecommendationBot implements SpringLongPollingBot, LongPollingSingl
         try {
             telegramClient.execute(sendMessage);
         } catch (TelegramApiException e) {
+            // Печатаем стек ошибок при сбоях интеграции с внешним API мессенджера
             e.printStackTrace();
         }
     }

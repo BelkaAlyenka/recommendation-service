@@ -9,6 +9,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
+/**
+ * REST-контроллер для предоставления персональных рекомендаций конечным пользователям.
+ * Является основной точкой интеграции для фронтенд-приложений и мобильного банка.
+ */
 @RestController
 public class RecommendationController {
 
@@ -18,6 +22,12 @@ public class RecommendationController {
         this.recommendationService = recommendationService;
     }
 
+    /**
+     * Возвращает приоритезированный список персональных предложений для конкретного пользователя.
+     *
+     * @param userIdStr строковое представление уникального идентификатора пользователя (UUID)
+     * @return ResponseEntity, содержащий RecommendationResponseDto со списком доступных продуктов
+     */
     @GetMapping("/recommendation/{user_id}")
     public ResponseEntity<RecommendationResponseDto> getRecommendation(@PathVariable("user_id") String userIdStr) {
         UUID userId = UUID.fromString(userIdStr);
